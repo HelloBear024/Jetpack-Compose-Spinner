@@ -1,0 +1,59 @@
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DropdownMenuSpinner(modifier: Modifier=Modifier, name: String, optionsList: List<String>, onCurrencySelected: (String) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    var selectedOptionText by remember { mutableStateOf("") }  // Holds the text entered or selected
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = modifier
+    ) {
+        // TextField to allow user to input or select a currency
+        OutlinedTextField(
+            value = selectedOptionText,
+            onValueChange = { input ->
+                selectedOptionText = input  // Update input
+                expanded = true  // Expand the dropdown when the user types
+            },
+            label = { Text("$name Currency") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            colors = ExposedDropdownMenuDefaults.textFieldColors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White
+            ),
+            shape = RoundedCornerShape(15.dp),
+            singleLine = true,
+            modifier = Modifier.menuAnchor()
+            
+        )
+
+        val filteringOptions = optionsList.filter {
+            it.contains(selectedOptionText, ignoreCase = true)
+        }
+
+        // Show dropdown only if there are filtered options and the dropdown is expanded
+        if (filteringOptions.isNotEmpty() && expanded) {
+            DropdownMenu(
+                modifier = Modifier
+                    .background(Color.White)
+                    .exposedDropdownSize(true),
+                properties = PopupProperties(focusable = false),
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+            ) {
+                filteringOptions.forEach { selectionOption ->
+                    DropdownMenuItem(
+                        text = { Text(selectionOption) },
+                        onClick = {
+                            selectedOptionText = selectionOption  // Update the selected option
+                            expanded = false  // Close the dropdown
+                            onCurrencySelected(selectionOption)  // Pass selected value to MainScreen
+                        },
+                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                    )
+                }
+            }
+        }
+    }
+}
